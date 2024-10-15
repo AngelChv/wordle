@@ -1,10 +1,22 @@
+"""
+Todo guardar palabras usadas (en un set si es conveniente o una lista).
+Todo crear clase word que herede de string y otra clase char que herede de char, para que guarde el estado / color. (no)
+
+Instalaciones:
+pip install rich
+"""
 import json
 import os
 import random
+import re
 from json import JSONDecodeError
+from typing import Callable, Pattern
 
 import requests
 from requests import Response, RequestException
+from rich.console import Console
+from rich.table import Table
+from word import Word
 
 
 def get_resource() -> list[str]:
@@ -93,6 +105,48 @@ def get_rand_word() -> str:
     return rand_word
 
 
+def request_str(message: str, validator: Callable[[str], bool]) -> str:
+    string: str = input(message).strip()
+    if string and validator(string):
+        return string
+    else:
+        print("La palabra no es válida.")
+        return request_str(message, validator)
+
+    #return string if string and validator(string) else request_str(message, validator)
+
+
+def check_word(hidden: str, guess: str) -> bool:
+    print()
+
+
 if __name__ == '__main__':
-    word = get_rand_word()
-    print(word)
+    hidden_word: str = get_rand_word()
+    print(hidden_word)
+
+    turn: int = 1
+    attempts: int = 5
+    word_length: int = 5
+    regex: Pattern = re.compile(fr"^[a-zA-ZáéíóúÁÉÍÓÚñÑ]{{{attempts}}}$")
+
+    print("Bienvenido al Wordle para terminal!")
+    print("Tienes 5 turnos para adivinar la palabra oculta.")
+    print("En cada intento deberás proporcionar una palabra de 5 letras.")
+    print("Si una letra está en la misma posición que la palabra oculta, aparecerá en verde.")
+    print("Si una letra está en la palabra, pero no en la misma posición, aparecerá en naranja.")
+    print("Si una letra no está en toda la palabra, aparecerá en gris.")
+    player_word: Word = Word(request_str(f"{turn}: ", lambda word: True if regex.match(word) else False))
+    player_word.check(hidden_word)
+    print(player_word.get_characters())
+
+    # Crear un objeto Console
+    console = Console()
+
+    # Crear una tabla
+    table = Table(title="Wordle", show_header=False)
+
+    # Añadir filas
+    table.add_row(*player_word.get_characters())
+
+    # Imprimir la tabla
+    console.print(table)
