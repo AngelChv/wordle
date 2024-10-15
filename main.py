@@ -10,6 +10,7 @@ import os
 import random
 import re
 from json import JSONDecodeError
+from shutil import which
 from typing import Callable, Pattern
 
 import requests
@@ -106,7 +107,7 @@ def get_rand_word() -> str:
 
 
 def request_str(message: str, validator: Callable[[str], bool]) -> str:
-    string: str = input(message).strip()
+    string: str = input(message).strip().lower()
     if string and validator(string):
         return string
     else:
@@ -116,18 +117,19 @@ def request_str(message: str, validator: Callable[[str], bool]) -> str:
     #return string if string and validator(string) else request_str(message, validator)
 
 
-def check_word(hidden: str, guess: str) -> bool:
-    print()
+def main():
+    # Crear un objeto Console
+    console = Console()
+    # Crear una tabla
+    table = Table(title="Wordle", show_header=False)
 
-
-if __name__ == '__main__':
+    win: bool = False
     hidden_word: str = get_rand_word()
-    print(hidden_word)
-
     turn: int = 1
-    attempts: int = 5
-    word_length: int = 5
-    regex: Pattern = re.compile(fr"^[a-zA-ZáéíóúÁÉÍÓÚñÑ]{{{attempts}}}$")
+    attempts: int = 6
+    word_length: int = len(hidden_word) # todo hacer que se pida al usuario.
+    regex: Pattern = re.compile(fr"^[a-zA-ZáéíóúÁÉÍÓÚñÑ]{{{word_length}}}$")
+    words_used: list[Word] = list()
 
     print("Bienvenido al Wordle para terminal!")
     print("Tienes 5 turnos para adivinar la palabra oculta.")
@@ -135,18 +137,28 @@ if __name__ == '__main__':
     print("Si una letra está en la misma posición que la palabra oculta, aparecerá en verde.")
     print("Si una letra está en la palabra, pero no en la misma posición, aparecerá en naranja.")
     print("Si una letra no está en toda la palabra, aparecerá en gris.")
-    player_word: Word = Word(request_str(f"{turn}: ", lambda word: True if regex.match(word) else False))
-    player_word.check(hidden_word)
-    print(player_word.get_characters())
 
-    # Crear un objeto Console
-    console = Console()
+    while turn <= attempts and not win:
+        player_word: Word = Word(request_str(f"{turn}: ", lambda word: True if regex.match(word) else False))
+        words_used.append(player_word)
+        win = player_word.check(hidden_word)
 
-    # Crear una tabla
-    table = Table(title="Wordle", show_header=False)
+        # Añadir filas
+        table.add_row(*player_word.characters)
 
-    # Añadir filas
-    table.add_row(*player_word.get_characters())
+        # Imprimir la tabla
+        console.print(table)
 
-    # Imprimir la tabla
-    console.print(table)
+        # Incrementar turno
+        turn += 1
+
+    if win:
+        console.print("[green]Has ganado![/green]")
+    else:
+        console.print(f"[red]Has perdido, la palabra era: {hidden_word}[/red]")
+
+    if input("Quieres seguir jugando? (s/n): ").strip().lower() == 's': main()
+
+
+if __name__ == '__main__':
+    main()
