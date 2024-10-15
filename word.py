@@ -1,19 +1,21 @@
 class Word:
     def __init__(self, word: str):
         self.characters: list[str] = list(word)
+        # todo pedir colores al inicializar
 
     def check(self, word: str) -> bool:
         win = True
         for i, c in enumerate(self.characters):
-            pos = word.find(c)
-            if pos == -1:
-                win = False
-                self.characters[i] = f"[grey]{c}[/grey]"
-            elif pos == i:
-                self.characters[i] = f"[green]{c}[/green]"
+            positions = [index for index, char in enumerate(word) if c == char]
+            if positions:
+                if i in positions:
+                    self.characters[i] = f"[green]{c}[/green]"
+                else:
+                    win = False
+                    self.characters[i] = f"[yellow]{c}[/yellow]"
             else:
                 win = False
-                self.characters[i] = f"[yellow]{c}[/yellow]"
+                self.characters[i] = f"[grey]{c}[/grey]"
         return win
 
 
