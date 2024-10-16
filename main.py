@@ -4,6 +4,7 @@ from typing import Callable, Pattern
 
 from rich.console import Console
 from rich.table import Table
+from rich.theme import Theme
 
 from word import Word
 
@@ -15,9 +16,11 @@ def main():
     Instalaciones:
     pip install rich
     """
+    # Colores utilizados.
+    custom_theme = Theme({"guess": "green", "match": "yellow", "none": "white"})
     # Crear un objeto Console de la librería rich para mostrar tablas y colores.
-    console = Console()
-    console.print("Bienvenido al [red]W[/red][green]o[/green][yellow]r[/yellow][blue]d[/blue][magenta]l[/magenta][cyan]e[/cyan] para terminal!")
+    console = Console(theme=custom_theme)
+    console.print("Bienvenido al [bold][red]W[/][green]o[/][yellow]r[/][blue]d[/][magenta]l[/][cyan]e[/][/] para terminal!")
 
     #Pedir al usuario de qué forma quiere obtener las palabras:
     print("Este programa necesita cargar una lista de palabras, para ello existen dos opciones:")
@@ -38,7 +41,7 @@ def main():
             case _: raise RuntimeError("No se ha elegído una opción válida para el módulo de carga de palabras.")
 
         # Crear una tabla
-        table = Table(title="Wordle", show_header=False)
+        table = Table(title="[bold cyan]Wordle[/]", show_header=False, style="magenta")
         # Longitud de la palabra.
         word_length: int = 5
         # Patrón que deben cumplir las palabras introducidas.

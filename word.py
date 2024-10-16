@@ -14,13 +14,13 @@ class Word:
             positions = [index for index, char in enumerate(word) if c == char]
             if positions:
                 if i in positions:
-                    self.characters[i] = f"[green]{c}[/green]"
+                    self.characters[i] = f"[guess]{c}[/]"
                 else:
                     win = False
-                    self.characters[i] = f"[yellow]{c}[/yellow]"
+                    self.characters[i] = f"[match]{c}[/]"
             else:
                 win = False
-                self.characters[i] = f"[grey]{c}[/grey]"
+                self.characters[i] = f"[none]{c}[/]"
         return win
 
 

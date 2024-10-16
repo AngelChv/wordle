@@ -3,8 +3,11 @@ import re
 import requests
 from regex import Pattern
 from requests import Response, RequestException
+from rich.console import Console
+
 from resource_manager import get_resource, set_words
 
+console = Console()
 
 def get_rand_word() -> str:
     """
@@ -18,7 +21,7 @@ def get_rand_word() -> str:
         print("Palabras cargadas del fichero local (datamuse.json).")
         rand_word = random.choice(words)
     else:
-        print("Descargándose...")
+        console.log("Descárgando...")
         response: Response = get_request()
         # Compruebo el estado de la petición (200 es correcta).
         if response.status_code == 200:
