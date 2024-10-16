@@ -1,25 +1,25 @@
 import importlib
 import re
 from typing import Callable, Pattern
-
 from rich.console import Console
 from rich.table import Table
 from rich.theme import Theme
-
 from word import Word
+
+# Colores utilizados.
+custom_theme = Theme({"guess": "green", "match": "yellow", "none": "white", "error": "red"})
+# Crear un objeto Console de la librería rich para mostrar tablas y colores.
+console = Console(theme=custom_theme)
 
 
 def main():
     """
     todo guardar puntuaciones.
     Author: <Ángel Chicote>
+    Consejos: ejecutar si no vés los colores la terminal de tu ide, ejecutaló en la terminal directamente.
     Instalaciones:
     pip install rich
     """
-    # Colores utilizados.
-    custom_theme = Theme({"guess": "green", "match": "yellow", "none": "white"})
-    # Crear un objeto Console de la librería rich para mostrar tablas y colores.
-    console = Console(theme=custom_theme)
     console.print("Bienvenido al [bold][red]W[/][green]o[/][yellow]r[/][blue]d[/][magenta]l[/][cyan]e[/][/] para terminal!")
 
     #Pedir al usuario de qué forma quiere obtener las palabras:
@@ -73,29 +73,29 @@ def main():
             turn += 1
 
         if win: # Victoria.
-            console.print("[green]Has ganado![/green]")
+            console.print("[guess]Has ganado![/]")
         else: # Derrota.
-            console.print(f"[red]Has perdido, la palabra era: {hidden_word}[/red]")
+            console.print(f"[error]Has perdido, la palabra era: {hidden_word}[/]")
 
-        if input("Quieres seguir jugando? (s/n): ").strip().lower() == 's': main()
+        if console.input("Quieres seguir jugando? (s/n): ").strip().lower() == 's': main()
     except ModuleNotFoundError as mnfe:
-        print("No se ha podido encontrar el módulo que se intenta cargar: ", mnfe)
+        console.print("No se ha podido encontrar el módulo que se intenta cargar: ", mnfe, style="red")
     except RuntimeError as rune:
-        print(rune)
+        console.print(rune, style="red")
 
 
 
 
 def request_str(message: str, validator: Callable[[str], bool]) -> str:
     try:
-        string: str = input(message).strip().lower()
+        string: str = console.input(message).strip().lower()
         if string and validator(string):
             return string
         else:
-            print("La palabra no es válida.")
+            console.print("La palabra no es válida.", style="yellow")
             return request_str(message, validator)
     except UnicodeDecodeError as ude:
-        print("Error: ", ude)
+        console.print("Error: ", ude, style="red")
         return request_str(message, validator)
 
 
@@ -105,10 +105,10 @@ def request_int(message: str, validator: Callable[[str], bool]) -> int:
         if num and validator(num):
             return int(num)
         else:
-            print("El número no es válido.")
+            console.print("El número no es válido.", style="yellow")
             return request_int(message, validator)
     except [UnicodeDecodeError, ValueError, TypeError] as e:
-        print("Error: ", e)
+        console.print("Error: ", e, style="red")
         return request_int(message, validator)
 
 

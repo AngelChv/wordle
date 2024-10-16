@@ -18,7 +18,7 @@ def get_rand_word() -> str:
     words: list[str] = get_resource("datamuse.json")
     rand_word: str
     if words:
-        print("Palabras cargadas del fichero local (datamuse.json).")
+        console.print("Palabras cargadas del fichero local (datamuse.json).")
         rand_word = random.choice(words)
     else:
         console.log("Descárgando...")
@@ -31,7 +31,7 @@ def get_rand_word() -> str:
                 set_words(filtered_words, "datamuse.json")
                 rand_word = random.choice(filtered_words)
             else:
-                print("Error no se han descargado palabras.")
+                console.print("Error no se han descargado palabras.", style="red")
                 rand_word = f"Error, no se han descargado palabras."
         else:
             rand_word = f"Error al conectarse a la API: {response.status_code}"
@@ -55,7 +55,7 @@ def get_request() -> Response:
         # realizo la petición:
         return requests.get(url, params=params)
     except RequestException as e:
-        print(f"Error en la petición a la API: {e}")
+        console.print(f"Error en la petición a la API: {e}", style="red")
         # Devolver una respuesta vacía para que se detecte como error.
         return Response()
 
