@@ -1,7 +1,6 @@
 """
 Todo guardar palabras usadas (en un set si es conveniente o una lista).
-Todo crear clase word que herede de string y otra clase char que herede de char, para que guarde el estado / color. (no)
-
+todo filtrar palabras.
 Instalaciones:
 pip install rich
 """
