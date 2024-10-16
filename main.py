@@ -1,162 +1,112 @@
-"""
-Todo guardar palabras usadas (en un set si es conveniente o una lista).
-todo filtrar palabras.
-Instalaciones:
-pip install rich
-"""
-import json
-import os
-import random
+import importlib
 import re
-from json import JSONDecodeError
-from shutil import which
 from typing import Callable, Pattern
 
-import requests
-from requests import Response, RequestException
 from rich.console import Console
 from rich.table import Table
+
 from word import Word
 
 
-def get_resource() -> list[str]:
+def main():
     """
-    Función para obtener una lista de palabras de un recurso local.
-    :return: Lista de palabras.
+    todo guardar puntuaciones.
+    Author: <Ángel Chicote>
+    Instalaciones:
+    pip install rich
     """
+    # Crear un objeto Console de la librería rich para mostrar tablas y colores.
+    console = Console()
+    console.print("Bienvenido al [red]W[/red][green]o[/green][yellow]r[/yellow][blue]d[/blue][magenta]l[/magenta][cyan]e[/cyan] para terminal!")
+
+    #Pedir al usuario de qué forma quiere obtener las palabras:
+    print("Este programa necesita cargar una lista de palabras, para ello existen dos opciones:")
+    print("- Usar data muse (una api que proporciona palabras en inglés y en español) no requiere de instalación. "
+          "programa funciona en español, pero la api muchas veces confunde palabras en ingles y las introduce en la lista.")
+    print("- Wordfreq, es una librería de python que proporciona una serie de palabras comunes, necesita de instalación, "
+          "pero proporcióna palabras de uso frecuente más fáciles de adivinar.")
+    op = request_int(
+        "1. DataMuse.\n2. Wordfreq.\nElige: ",
+        lambda o: True if re.match(f"^[12]$", o) else False
+    )
+
+    # En función de la opción elegida, se carga un módulo u otro.
     try:
-        with open('resources/words.json', 'r', encoding='utf-8') as f:
-            return json.load(f)
-    except FileNotFoundError:
-        print("El archivo 'words.json' no fue encontrado.")
-        return []
-    except JSONDecodeError:
-        print("Error al decodificar el archivo JSON.")
-        return []
-    except OSError as e:
-        print(f"Error de entrada/salida: {e}")
-        return []
+        match op:
+            case 1: modulo = importlib.import_module("datamuse_wordle")
+            case 2: modulo = importlib.import_module("wordfreq_wordle")
+            case _: raise RuntimeError("No se ha elegído una opción válida para el módulo de carga de palabras.")
+
+        # Crear una tabla
+        table = Table(title="Wordle", show_header=False)
+        # Longitud de la palabra.
+        word_length: int = 5
+        # Patrón que deben cumplir las palabras introducidas.
+        regex: Pattern = re.compile(fr"^[a-zA-ZáéíóúÁÉÍÓÚñÑ]{{{word_length}}}$")
+        # Genéro una palabra aleatória.
+        hidden_word: str = modulo.get_rand_word()
+        win: bool = False # almacena si el jugador ha ganado.
+        turn: int = 1 # turno actual
+        attempts: int = 6 # máximo de rondas.
+
+        print("Tienes 5 turnos para adivinar la palabra oculta.")
+        print("En cada intento deberás proporcionar una palabra de 5 letras.")
+        print("Si una letra está en la misma posición que la palabra oculta, aparecerá en verde.")
+        print("Si una letra está en la palabra, pero no en la misma posición, aparecerá en naranja.")
+        print("Si una letra no está en toda la palabra, aparecerá en gris.")
+
+        # El bucle de juego continúa si no se han acabado las rondas ni el jugador ha ganado.
+        while turn <= attempts and not win:
+            # Crear objeto Word con la palabra pedida por teclado, la cual se validará con el regex.
+            player_word: Word = Word(request_str(f"{turn}: ", lambda word: True if regex.match(word) else False))
+            #Comprobar la palabra y establecer los colores de cada carácter.
+            win = player_word.check(hidden_word)
+            # Añadir filas a la tabla, cada carácter es una columna, por lo tanto, utilizo '*' para separar los elementos
+            # de la lista de carácteres en los diferentes argumentos de la función.
+            table.add_row(*player_word.characters)
+            # Imprimir la tabla
+            console.print(table)
+            # Incrementar turno
+            turn += 1
+
+        if win: # Victoria.
+            console.print("[green]Has ganado![/green]")
+        else: # Derrota.
+            console.print(f"[red]Has perdido, la palabra era: {hidden_word}[/red]")
+
+        if input("Quieres seguir jugando? (s/n): ").strip().lower() == 's': main()
+    except ModuleNotFoundError as mnfe:
+        print("No se ha podido encontrar el módulo que se intenta cargar: ", mnfe)
+    except RuntimeError as rune:
+        print(rune)
 
 
-def get_request() -> Response:
-    """
-    Realiza una petición a la API datamuse para obtener una serie de palabras con 5 letras en español.
-    :return: :class:`Response <Response>` que almacena el código de estado y el contenido de la petición.
-    """
-    # Utilizo la api datamuse para obtener palabras.
-    url: str = 'https://api.datamuse.com/words'
-    # parámetros que definen la cantidad de palabras y la condición.
-    params: dict[str, str | int] = {
-        'sp': '?????',
-        'max': 1000,
-        'v': 'es'
-    }
-    try:
-        # realizo la petición:
-        return requests.get(url, params=params)
-    except RequestException as e:
-        print(f"Error en la petición a la API: {e}")
-
-        # Devolver una respuesta vacía para que se detecte como error.
-        return Response()
-
-
-def set_words(words: list[str]) -> None:
-    """
-    Almacena una lista de palabras en formato json.
-    :param words: Lista de palabras.
-    :return: :class:`None <None>`
-    """
-    if not os.path.exists('resources'):
-        os.mkdir("resources")
-
-    try:
-        with open('resources/words.json', 'wt', encoding='utf-8') as f:
-            json.dump(words, f)
-    except OSError as e:
-        print(f"No se han podido guardar las palabras: {e}")
-
-
-def get_rand_word() -> str:
-    """
-    Genera una palabra aleatoria en función a una lista obtenida de la api datamuse mediante una petición o de un
-    archivo local.
-    :return: Palabra aleatoria.
-    """
-    words: list[str] = get_resource()
-    rand_word: str
-    if words:
-        print("Palabras cargadas del fichero local.")
-        rand_word = random.choice(words)
-    else:
-        print("Recurso de palabras no encontrado. Descargándose...")
-        response: Response = get_request()
-        # Compruebo el estado de la petición (200 es correcta).
-        if response.status_code == 200:
-            words = [w['word'] for w in response.json()]
-            if words:  # compruebo si la respuesta no es nula.
-                set_words(words)
-                rand_word = random.choice(words)
-            else:
-                print("Error no se han descargado palabras.")
-                rand_word = f"Error, no se han descargado palabras."
-        else:
-            rand_word = f"Error al conectarse a la API: {response.status_code}"
-    return rand_word
 
 
 def request_str(message: str, validator: Callable[[str], bool]) -> str:
-    string: str = input(message).strip().lower()
-    if string and validator(string):
-        return string
-    else:
-        print("La palabra no es válida.")
+    try:
+        string: str = input(message).strip().lower()
+        if string and validator(string):
+            return string
+        else:
+            print("La palabra no es válida.")
+            return request_str(message, validator)
+    except UnicodeDecodeError as ude:
+        print("Error: ", ude)
         return request_str(message, validator)
 
-    #return string if string and validator(string) else request_str(message, validator)
 
-
-def main():
-    # Crear un objeto Console
-    console = Console()
-    # Crear una tabla
-    table = Table(title="Wordle", show_header=False)
-
-    win: bool = False
-    hidden_word: str = get_rand_word()
-    turn: int = 1
-    attempts: int = 6
-    word_length: int = len(hidden_word) # todo hacer que se pida al usuario.
-    regex: Pattern = re.compile(fr"^[a-zA-ZáéíóúÁÉÍÓÚñÑ]{{{word_length}}}$")
-    words_used: list[Word] = list()
-
-    print("Bienvenido al Wordle para terminal!")
-    print("Tienes 5 turnos para adivinar la palabra oculta.")
-    print("En cada intento deberás proporcionar una palabra de 5 letras.")
-    print("Si una letra está en la misma posición que la palabra oculta, aparecerá en verde.")
-    print("Si una letra está en la palabra, pero no en la misma posición, aparecerá en naranja.")
-    print("Si una letra no está en toda la palabra, aparecerá en gris.")
-
-    while turn <= attempts and not win:
-        player_word: Word = Word(request_str(f"{turn}: ", lambda word: True if regex.match(word) else False))
-        words_used.append(player_word)
-        win = player_word.check(hidden_word)
-
-        # Añadir filas
-        table.add_row(*player_word.characters)
-
-        # Imprimir la tabla
-        console.print(table)
-
-        # Incrementar turno
-        turn += 1
-
-    if win:
-        console.print("[green]Has ganado![/green]")
-    else:
-        console.print(f"[red]Has perdido, la palabra era: {hidden_word}[/red]")
-
-    if input("Quieres seguir jugando? (s/n): ").strip().lower() == 's': main()
+def request_int(message: str, validator: Callable[[str], bool]) -> int:
+    try:
+        num: str = input(message).strip()
+        if num and validator(num):
+            return int(num)
+        else:
+            print("El número no es válido.")
+            return request_int(message, validator)
+    except [UnicodeDecodeError, ValueError, TypeError] as e:
+        print("Error: ", e)
+        return request_int(message, validator)
 
 
 if __name__ == '__main__':
