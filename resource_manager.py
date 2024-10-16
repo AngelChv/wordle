@@ -15,7 +15,7 @@ def get_resource(name: str) -> list[str]:
         print(f"El archivo {name} no fue encontrado.")
         return []
     except JSONDecodeError:
-        print("Error al decodificar el archivo JSON.")
+        print(f"Error al decodificar el archivo JSON: {name}.")
         return []
     except OSError as e:
         print(f"Error de entrada/salida: {e}")

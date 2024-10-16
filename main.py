@@ -3,13 +3,10 @@ import re
 from typing import Callable, Pattern
 from rich.console import Console
 from rich.table import Table
-from rich.theme import Theme
 from word import Word
 
-# Colores utilizados.
-custom_theme = Theme({"guess": "green", "match": "yellow", "none": "white", "error": "red"})
 # Crear un objeto Console de la librería rich para mostrar tablas y colores.
-console = Console(theme=custom_theme)
+console = Console()
 
 
 def main():
@@ -20,7 +17,7 @@ def main():
     Instalaciones:
     pip install rich
     """
-    console.print("Bienvenido al [bold][red]W[/][green]o[/][yellow]r[/][blue]d[/][magenta]l[/][cyan]e[/][/] para terminal!")
+    console.rule("Bienvenido al [bold][red]W[/][green]o[/][yellow]r[/][blue]d[/][magenta]l[/][cyan]e[/][/] para terminal!")
 
     #Pedir al usuario de qué forma quiere obtener las palabras:
     print("Este programa necesita cargar una lista de palabras, para ello existen dos opciones:")
@@ -29,7 +26,7 @@ def main():
     print("- Wordfreq, es una librería de python que proporciona una serie de palabras comunes, necesita de instalación, "
           "pero proporcióna palabras de uso frecuente más fáciles de adivinar.")
     op = request_int(
-        "1. DataMuse.\n2. Wordfreq.\nElige: ",
+        "[blue]1. DataMuse.\n2. Wordfreq.\nElige: ",
         lambda o: True if re.match(f"^[12]$", o) else False
     )
 
@@ -52,11 +49,11 @@ def main():
         turn: int = 1 # turno actual
         attempts: int = 6 # máximo de rondas.
 
-        print("Tienes 5 turnos para adivinar la palabra oculta.")
-        print("En cada intento deberás proporcionar una palabra de 5 letras.")
-        print("Si una letra está en la misma posición que la palabra oculta, aparecerá en verde.")
-        print("Si una letra está en la palabra, pero no en la misma posición, aparecerá en naranja.")
-        print("Si una letra no está en toda la palabra, aparecerá en gris.")
+        console.print("Tienes [bold]5 turnos[/] para adivinar la palabra oculta.")
+        console.print("En cada intento deberás proporcionar una palabra de [bold]5 letras[/].")
+        console.print("Si una letra está en la misma posición que la palabra oculta, aparecerá en [green]verde[/].")
+        console.print("Si una letra está en la palabra, pero no en la misma posición, aparecerá en [yellow]amarillo[/].")
+        console.print("Si una letra no está en toda la palabra, aparecerá en [dim]gris[/].")
 
         # El bucle de juego continúa si no se han acabado las rondas ni el jugador ha ganado.
         while turn <= attempts and not win:
@@ -77,7 +74,7 @@ def main():
         else: # Derrota.
             console.print(f"[error]Has perdido, la palabra era: {hidden_word}[/]")
 
-        if console.input("Quieres seguir jugando? (s/n): ").strip().lower() == 's': main()
+        if console.input("[underline]Quieres seguir jugando? (s/n): ").strip().lower() == 's': main()
     except ModuleNotFoundError as mnfe:
         console.print("No se ha podido encontrar el módulo que se intenta cargar: ", mnfe, style="red")
     except RuntimeError as rune:
@@ -101,13 +98,13 @@ def request_str(message: str, validator: Callable[[str], bool]) -> str:
 
 def request_int(message: str, validator: Callable[[str], bool]) -> int:
     try:
-        num: str = input(message).strip()
+        num: str = console.input(message).strip()
         if num and validator(num):
             return int(num)
         else:
             console.print("El número no es válido.", style="yellow")
             return request_int(message, validator)
-    except [UnicodeDecodeError, ValueError, TypeError] as e:
+    except (UnicodeDecodeError, ValueError, TypeError) as e:
         console.print("Error: ", e, style="red")
         return request_int(message, validator)
 
