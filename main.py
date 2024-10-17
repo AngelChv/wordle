@@ -9,14 +9,16 @@ from word import Word
 from word_generator import WordGenerator
 from wordfreq_wordle import WordFreq
 
-# Crear un objeto Console de la librería rich para mostrar tablas y colores.
 console = Console()
+"""
+Crear un objeto Console de la librería rich para mostrar tablas y colores.
+"""
 
 
 def main():
     """
     todo guardar puntuaciones.
-    todo mostrar un teclado con las letras que están en la palabra.
+    todo mostrar un teclado con las letras que están en la palabra y las que no.
     Author: <Ángel Chicote>
     Consejos: ejecutar si no vés los colores la terminal de tu ide, ejecutaló en la terminal directamente.
     Instalaciones:
@@ -35,12 +37,12 @@ def main():
           "programa funciona en español, pero la api muchas veces confunde palabras en ingles y las introduce en la lista.")
     print("- Wordfreq, es una librería de python que proporciona una serie de palabras comunes, necesita de instalación, "
           "pero proporcióna palabras de uso frecuente más fáciles de adivinar.")
-    op = request_int(
-        "[blue]1. DataMuse.\n2. Wordfreq.\nElige: ",
-        lambda o: True if re.match(f"^[12]$", o) else False
+    op = request_int( # pedir número entero al usuario.
+        "[blue]1. DataMuse.\n2. Wordfreq.\nElige: ", # texto que se muestra al usuario.
+        lambda o: True if re.match(f"^[12]$", o) else False # validación.
     )
 
-    # En función de la opción elegida, se carga un módulo u otro.
+    # En función de la opción elegida, se instantiate una clase u otra.
     try:
         match op:
             case 1: word_generator: WordGenerator = DataMuse()
@@ -49,8 +51,6 @@ def main():
 
         # Bucle del juego:
         game_loop(word_generator)
-    except ModuleNotFoundError as mnfe:
-        console.print("No se ha podido encontrar el módulo que se intenta cargar: ", mnfe, style="red")
     except RuntimeError as rune:
         console.print(rune, style="red")
 

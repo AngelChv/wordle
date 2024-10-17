@@ -11,11 +11,11 @@ from word_generator import WordGenerator
 
 class DataMuse(WordGenerator):
     def __init__(self, word_length: int = 5):
-        # todo pedir recurso.
         # Utilizo la api datamuse para obtener palabras.
         self.url: str = 'https://api.datamuse.com/words'
         self.regex: Pattern = re.compile(fr"^[a-záéíóúüñ]{{{word_length}}}$")
-        self.words: list[str] = self.filter_words(get_resource("datamuse.json"))
+        self.resource_path: str = "datamuse.json"
+        self.words: list[str] = self.filter_words(get_resource(self.resource_path))
 
     def get_rand_word(self) -> str:
         """
@@ -35,7 +35,7 @@ class DataMuse(WordGenerator):
                 words = [w['word'] for w in response.json()]
                 if words:  # compruebo si la respuesta no es nula.
                     filtered_words = self.filter_words(words)
-                    set_words(filtered_words, "datamuse.json")
+                    set_words(filtered_words, self.resource_path)
                     rand_word = random.choice(filtered_words)
                 else:
                     self.console.print("Error no se han descargado palabras.", style="red")
