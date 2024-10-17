@@ -16,8 +16,8 @@ def main():
     Author: <Ángel Chicote>
     Consejos: ejecutar si no vés los colores la terminal de tu ide, ejecutaló en la terminal directamente.
     Instalaciones:
-    pip install rich
-    pip install wordfreq
+    pip install rich / python -m install rich
+    pip install wordfreq / python -m install wordfreq
     """
     console.rule("Bienvenido al [bold][red]W[/][green]o[/][yellow]r[/][blue]d[/][magenta]l[/][cyan]e[/][/] para terminal!")
 
@@ -72,9 +72,9 @@ def main():
             turn += 1
 
         if win: # Victoria.
-            console.print("[guess]Has ganado![/]")
+            console.print("[green]Has ganado![/]")
         else: # Derrota.
-            console.print(f"[error]Has perdido, la palabra era: {hidden_word}[/]")
+            console.print(f"[red]Has perdido, la palabra era: {hidden_word}[/]")
 
         if console.input("[underline]Quieres seguir jugando? (s/n): ").strip().lower() == 's': main()
     except ModuleNotFoundError as mnfe:
