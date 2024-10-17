@@ -1,5 +1,6 @@
 import importlib
 import re
+from types import ModuleType
 from typing import Callable, Pattern
 from rich.console import Console
 from rich.table import Table
@@ -27,7 +28,7 @@ def main():
 
     #Pedir al usuario de qué forma quiere obtener las palabras:
     print("Este programa necesita cargar una lista de palabras, para ello existen dos opciones:")
-    print("- Usar data muse (una api que proporciona palabras en inglés y en español) no requiere de instalación. "
+    print("- Usar data muse (una api que proporciona palabras en inglés y en español) necesita la librería request. "
           "programa funciona en español, pero la api muchas veces confunde palabras en ingles y las introduce en la lista.")
     print("- Wordfreq, es una librería de python que proporciona una serie de palabras comunes, necesita de instalación, "
           "pero proporcióna palabras de uso frecuente más fáciles de adivinar.")
@@ -39,54 +40,57 @@ def main():
     # En función de la opción elegida, se carga un módulo u otro.
     try:
         match op:
-            case 1: modulo = importlib.import_module("datamuse_wordle")
-            case 2: modulo = importlib.import_module("wordfreq_wordle")
+            case 1: modulo: ModuleType = importlib.import_module("datamuse_wordle")
+            case 2: modulo: ModuleType = importlib.import_module("wordfreq_wordle")
             case _: raise RuntimeError("No se ha elegído una opción válida para el módulo de carga de palabras.")
 
-        # Crear una tabla
-        table = Table(title="[bold cyan]Wordle[/]", show_header=False, style="magenta")
-        # Longitud de la palabra.
-        word_length: int = 5
-        # Patrón que deben cumplir las palabras introducidas.
-        regex: Pattern = re.compile(fr"^[a-zA-ZáéíóúÁÉÍÓÚñÑ]{{{word_length}}}$")
-        # Genéro una palabra aleatória.
-        hidden_word: str = modulo.get_rand_word()
-        win: bool = False # almacena si el jugador ha ganado.
-        turn: int = 1 # turno actual
-        attempts: int = 6 # máximo de rondas.
-
-        console.print("Tienes [bold]5 turnos[/] para adivinar la palabra oculta.")
-        console.print("En cada intento deberás proporcionar una palabra de [bold]5 letras[/].")
-        console.print("Si una letra está en la misma posición que la palabra oculta, aparecerá en [green]verde[/].")
-        console.print("Si una letra está en la palabra, pero no en la misma posición, aparecerá en [yellow]amarillo[/].")
-        console.print("Si una letra no está en toda la palabra, aparecerá en [dim]gris[/].")
-
-        # El bucle de juego continúa si no se han acabado las rondas ni el jugador ha ganado.
-        while turn <= attempts and not win:
-            # Crear objeto Word con la palabra pedida por teclado, la cual se validará con el regex.
-            player_word: Word = Word(request_str(f"{turn}: ", lambda word: True if regex.match(word) else False))
-            #Comprobar la palabra y establecer los colores de cada carácter.
-            win = player_word.check(hidden_word)
-            # Añadir filas a la tabla, cada carácter es una columna, por lo tanto, utilizo '*' para separar los elementos
-            # de la lista de carácteres en los diferentes argumentos de la función.
-            table.add_row(*player_word.characters)
-            # Imprimir la tabla
-            console.print(table)
-            # Incrementar turno
-            turn += 1
-
-        if win: # Victoria.
-            console.print("[green]Has ganado![/]")
-        else: # Derrota.
-            console.print(f"[red]Has perdido, la palabra era: {hidden_word}[/]")
-
-        if console.input("[underline]Quieres seguir jugando? (s/n): ").strip().lower() == 's': main()
+        # Bucle del juego:
+        game_loop(modulo)
     except ModuleNotFoundError as mnfe:
         console.print("No se ha podido encontrar el módulo que se intenta cargar: ", mnfe, style="red")
     except RuntimeError as rune:
         console.print(rune, style="red")
 
 
+def game_loop(modulo: ModuleType):
+    # Crear una tabla
+    table = Table(title="[bold cyan]Wordle[/]", show_header=False, style="magenta")
+    # Longitud de la palabra.
+    word_length: int = 5
+    # Patrón que deben cumplir las palabras introducidas.
+    regex: Pattern = re.compile(fr"^[a-zA-ZáéíóúÁÉÍÓÚñÑ]{{{word_length}}}$")
+    # Genéro una palabra aleatória.
+    hidden_word: str = modulo.get_rand_word()
+    win: bool = False  # almacena si el jugador ha ganado.
+    turn: int = 1  # turno actual
+    attempts: int = 6  # máximo de rondas.
+
+    console.print(f"Tienes [bold]{attempts} turnos[/] para adivinar la palabra oculta.")
+    console.print(f"En cada intento deberás proporcionar una palabra de [bold]{word_length} letras[/].")
+    console.print("Si una letra está en la misma posición que la palabra oculta, aparecerá en [green]verde[/].")
+    console.print("Si una letra está en la palabra, pero no en la misma posición, aparecerá en [yellow]amarillo[/].")
+    console.print("Si una letra no está en toda la palabra, aparecerá en [dim]gris[/].")
+
+    # El bucle de juego continúa si no se han acabado las rondas ni el jugador ha ganado.
+    while turn <= attempts and not win:
+        # Crear objeto Word con la palabra pedida por teclado, la cual se validará con el regex.
+        player_word: Word = Word(request_str(f"{turn}: ", lambda word: True if regex.match(word) else False))
+        # Comprobar la palabra y establecer los colores de cada carácter.
+        win = player_word.check(hidden_word)
+        # Añadir filas a la tabla, cada carácter es una columna, por lo tanto, utilizo '*' para separar los elementos
+        # de la lista de carácteres en los diferentes argumentos de la función.
+        table.add_row(*player_word.characters)
+        # Imprimir la tabla
+        console.print(table)
+        # Incrementar turno
+        turn += 1
+
+    if win:  # Victoria.
+        console.print("[green]Has ganado![/]")
+    else:  # Derrota.
+        console.print(f"[red]Has perdido, la palabra era: {hidden_word}[/]")
+
+    if console.input("[underline]Quieres seguir jugando? (s/n): ").strip().lower() == 's': game_loop(modulo)
 
 
 def request_str(message: str, validator: Callable[[str], bool]) -> str:
