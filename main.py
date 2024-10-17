@@ -16,8 +16,12 @@ def main():
     Author: <Ángel Chicote>
     Consejos: ejecutar si no vés los colores la terminal de tu ide, ejecutaló en la terminal directamente.
     Instalaciones:
+    ---- Necesaria ----
     pip install rich / python -m install rich
+    ---- Wordfreq ----
     pip install wordfreq / python -m install wordfreq
+    ---- Data Muse ----
+    pip install request / python -m install request
     """
     console.rule("Bienvenido al [bold][red]W[/][green]o[/][yellow]r[/][blue]d[/][magenta]l[/][cyan]e[/][/] para terminal!")
 
