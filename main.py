@@ -1,10 +1,13 @@
-import importlib
 import re
-from types import ModuleType
 from typing import Callable, Pattern
+
 from rich.console import Console
 from rich.table import Table
+
+from datamuse_wordle import DataMuse
 from word import Word
+from word_generator import WordGenerator
+from wordfreq_wordle import WordFreq
 
 # Crear un objeto Console de la librería rich para mostrar tablas y colores.
 console = Console()
@@ -40,27 +43,27 @@ def main():
     # En función de la opción elegida, se carga un módulo u otro.
     try:
         match op:
-            case 1: modulo: ModuleType = importlib.import_module("datamuse_wordle")
-            case 2: modulo: ModuleType = importlib.import_module("wordfreq_wordle")
+            case 1: word_generator: WordGenerator = DataMuse()
+            case 2: word_generator: WordGenerator = WordFreq()
             case _: raise RuntimeError("No se ha elegído una opción válida para el módulo de carga de palabras.")
 
         # Bucle del juego:
-        game_loop(modulo)
+        game_loop(word_generator)
     except ModuleNotFoundError as mnfe:
         console.print("No se ha podido encontrar el módulo que se intenta cargar: ", mnfe, style="red")
     except RuntimeError as rune:
         console.print(rune, style="red")
 
 
-def game_loop(modulo: ModuleType):
+def game_loop(word_generator: WordGenerator) -> None:
     # Crear una tabla
     table = Table(title="[bold cyan]Wordle[/]", show_header=False, style="magenta")
+    # Genéro una palabra aleatória.
+    hidden_word: str = word_generator.get_rand_word()
     # Longitud de la palabra.
-    word_length: int = 5
+    word_length: int = len(hidden_word)
     # Patrón que deben cumplir las palabras introducidas.
     regex: Pattern = re.compile(fr"^[a-zA-ZáéíóúÁÉÍÓÚñÑ]{{{word_length}}}$")
-    # Genéro una palabra aleatória.
-    hidden_word: str = modulo.get_rand_word()
     win: bool = False  # almacena si el jugador ha ganado.
     turn: int = 1  # turno actual
     attempts: int = 6  # máximo de rondas.
@@ -90,7 +93,7 @@ def game_loop(modulo: ModuleType):
     else:  # Derrota.
         console.print(f"[red]Has perdido, la palabra era: {hidden_word}[/]")
 
-    if console.input("[underline]Quieres seguir jugando? (s/n): ").strip().lower() == 's': game_loop(modulo)
+    if console.input("[underline]Quieres seguir jugando? (s/n): ").strip().lower() == 's': game_loop(word_generator)
 
 
 def request_str(message: str, validator: Callable[[str], bool]) -> str:

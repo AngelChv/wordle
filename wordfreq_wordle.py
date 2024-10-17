@@ -12,6 +12,7 @@ class WordFreq(WordGenerator):
         self.word_length: int = word_length
         self.words: list[str] = get_resource("wordfreq.json")
 
+
     def get_rand_word(self) -> str:
         """
         Genera una palabra aleatoria en función a una lista obtenida de la librería wordfreq.

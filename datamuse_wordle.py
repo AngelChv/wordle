@@ -1,14 +1,13 @@
 import random
 import re
+
 import requests
 from regex import Pattern
 from requests import Response, RequestException
-from rich.console import Console
 
 from resource_manager import get_resource, set_words
 from word_generator import WordGenerator
 
-console = Console()
 
 class DataMuse(WordGenerator):
     def __init__(self, word_length: int = 5):
@@ -26,10 +25,10 @@ class DataMuse(WordGenerator):
         """
         rand_word: str
         if self.words:
-            console.print("Palabras cargadas del fichero local (datamuse.json).")
+            self.console.print("Palabras cargadas del fichero local (datamuse.json).")
             rand_word = random.choice(self.words)
         else:
-            console.log("Descárgando...")
+            self.console.log("Descárgando...")
             response: Response = self.get_request()
             # Compruebo el estado de la petición (200 es correcta).
             if response.status_code == 200:
@@ -39,7 +38,7 @@ class DataMuse(WordGenerator):
                     set_words(filtered_words, "datamuse.json")
                     rand_word = random.choice(filtered_words)
                 else:
-                    console.print("Error no se han descargado palabras.", style="red")
+                    self.console.print("Error no se han descargado palabras.", style="red")
                     rand_word = f"Error, no se han descargado palabras."
             else:
                 rand_word = f"Error al conectarse a la API: {response.status_code}"
@@ -61,7 +60,7 @@ class DataMuse(WordGenerator):
             # realizo la petición:
             return requests.get(self.url, params=params)
         except RequestException as e:
-            console.print(f"Error en la petición a la API: {e}", style="red")
+            self.console.print(f"Error en la petición a la API: {e}", style="red")
             # Devolver una respuesta vacía para que se detecte como error.
             return Response()
 
