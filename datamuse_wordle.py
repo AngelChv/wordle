@@ -1,7 +1,6 @@
 import random
 import re
 import requests
-from pygments.lexer import words
 from regex import Pattern
 from requests import Response, RequestException
 from rich.console import Console
@@ -12,9 +11,12 @@ from word_generator import WordGenerator
 console = Console()
 
 class DataMuse(WordGenerator):
-    def __init__(self):
+    def __init__(self, word_length: int = 5):
         # todo pedir recurso.
-        self.words: list[str] = get_resource("datamuse.json")
+        # Utilizo la api datamuse para obtener palabras.
+        self.url: str = 'https://api.datamuse.com/words'
+        self.regex: Pattern = re.compile(fr"^[a-zA-ZáéíóúÁÉÍÓÚñÑ]{{{word_length}}}$")
+        self.words: list[str] = self.filter_words(get_resource("datamuse.json"))
 
     def get_rand_word(self) -> str:
         """
@@ -49,8 +51,6 @@ class DataMuse(WordGenerator):
         Realiza una petición a la API datamuse para obtener una serie de palabras con 5 letras en español.
         :return: :class:`Response <Response>` que almacena el código de estado y el contenido de la petición.
         """
-        # Utilizo la api datamuse para obtener palabras.
-        url: str = 'https://api.datamuse.com/words'
         # parámetros que definen la cantidad de palabras y la condición.
         params: dict[str, str | int] = {
             'sp': '?????',
@@ -59,14 +59,12 @@ class DataMuse(WordGenerator):
         }
         try:
             # realizo la petición:
-            return requests.get(url, params=params)
+            return requests.get(self.url, params=params)
         except RequestException as e:
             console.print(f"Error en la petición a la API: {e}", style="red")
             # Devolver una respuesta vacía para que se detecte como error.
             return Response()
 
 
-    def filter_words(words: list[str]) -> list[str]:
-        word_length: int = 5
-        regex: Pattern = re.compile(fr"^[a-zA-ZáéíóúÁÉÍÓÚñÑ]{{{word_length}}}$")
-        return [word for word in words if regex.match(word)]
+    def filter_words(self, words: list[str]) -> list[str]:
+        return [word for word in words if self.regex.match(word)]
