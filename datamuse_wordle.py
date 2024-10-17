@@ -14,7 +14,7 @@ class DataMuse(WordGenerator):
         # todo pedir recurso.
         # Utilizo la api datamuse para obtener palabras.
         self.url: str = 'https://api.datamuse.com/words'
-        self.regex: Pattern = re.compile(fr"^[a-zA-ZáéíóúÁÉÍÓÚñÑ]{{{word_length}}}$")
+        self.regex: Pattern = re.compile(fr"^[a-záéíóúüñ]{{{word_length}}}$")
         self.words: list[str] = self.filter_words(get_resource("datamuse.json"))
 
     def get_rand_word(self) -> str:

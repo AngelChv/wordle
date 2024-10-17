@@ -63,7 +63,7 @@ def game_loop(word_generator: WordGenerator) -> None:
     # Longitud de la palabra.
     word_length: int = len(hidden_word)
     # Patrón que deben cumplir las palabras introducidas.
-    regex: Pattern = re.compile(fr"^[a-zA-ZáéíóúÁÉÍÓÚñÑ]{{{word_length}}}$")
+    regex: Pattern = re.compile(fr"^[a-záéíóúüñ]{{{word_length}}}$")
     win: bool = False  # almacena si el jugador ha ganado.
     turn: int = 1  # turno actual
     attempts: int = 6  # máximo de rondas.
@@ -82,7 +82,7 @@ def game_loop(word_generator: WordGenerator) -> None:
         win = player_word.check(hidden_word)
         # Añadir filas a la tabla, cada carácter es una columna, por lo tanto, utilizo '*' para separar los elementos
         # de la lista de carácteres en los diferentes argumentos de la función.
-        table.add_row(*player_word.characters)
+        table.add_row(*player_word.get_characters())
         # Imprimir la tabla
         console.print(table)
         # Incrementar turno
