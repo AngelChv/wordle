@@ -7,6 +7,9 @@ from word_generator import WordGenerator
 
 
 class WordFreq(WordGenerator):
+    """
+    Utiliza wordfreq para generar una palabra aleatoria.
+    """
     def __init__(self, word_length: int = 5):
         self.word_length: int = word_length
         self.resource_path: str = "wordfreq.json"

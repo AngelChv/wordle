@@ -10,6 +10,9 @@ from word_generator import WordGenerator
 
 
 class DataMuse(WordGenerator):
+    """
+    Utiliza datamuse para generar una palabra aleatoria.
+    """
     def __init__(self, word_length: int = 5):
         # Utilizo la api datamuse para obtener palabras.
         self.url: str = 'https://api.datamuse.com/words'
@@ -66,4 +69,9 @@ class DataMuse(WordGenerator):
 
 
     def filter_words(self, words: list[str]) -> list[str]:
+        """
+        Filtra la lista de palabras obtenidas de la api.
+        :param words: Lista de palabras a filtrar.
+        :return: Lista filtrada.
+        """
         return [word for word in words if self.regex.match(word)]
